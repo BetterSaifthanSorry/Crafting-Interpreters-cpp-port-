@@ -1,8 +1,4 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <any>
-#include <unordered_map>
+#include "src.h"
 
 using namespace std;
 bool hadError = false;
@@ -12,52 +8,18 @@ void report(int line, string where, string msg){
     hadError = true;
 }
 
+void error(Token token, string message){
+    if (token.type == END_OF_FILE) {
+        report(token.line, " at end", message);
+    } else {
+        report(token.line, " at '" + token.lexeme + "'", message);
+    }
+}
+
 void error(int line, string msg){
     report(line, "", msg);
 }
 
-
-enum TokenType {
-      // Single-character tokens.
-  LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-  COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
-
-  // One or two character tokens.
-  BANG, BANG_EQUAL,
-  EQUAL, EQUAL_EQUAL,
-  GREATER, GREATER_EQUAL,
-  LESS, LESS_EQUAL,
-
-  // Literals.
-  IDENTIFIER, STRING, NUMBER,
-
-  // Keywords.
-  AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-  PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
-
-  END_OF_FILE
-};
-unordered_map<TokenType, string> print_map;
-
-class Token{
-    TokenType type;
-    string lexeme;
-    // this std:any is the closest thing i can think of to the prototypical Java Object
-    any literal;
-    int line;
-    public:
-    Token(TokenType type, string lexeme, any literal, int line){
-        this->type = type;
-        this->lexeme = lexeme;
-        this->literal = literal;
-        this->line = line;
-    }
-
-    friend ostream& operator<<(ostream& out, Token& token){
-        out << token.lexeme <<" "<< print_map[token.type] <<endl;
-        return out;
-    }
-};
 
 unordered_map<string, TokenType> hash_map;
 
@@ -216,9 +178,13 @@ class Scanner{
 void run(string line){
     Scanner scanner(line);
     vector<Token> tokens = scanner.scanTokens();
+    Parser parser(tokens);
+    Expr* expr = parser.parse();
 
-    for (auto token: tokens)
-        cout << token;
+    if (hadError) return;
+    
+    AstPrinter printer;
+    printer.print(expr);
 }
 
 int main(){
