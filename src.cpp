@@ -183,13 +183,14 @@ class Scanner{
 
 void run(string line){
     Scanner scanner(line);
-    Interpreter interpreter;
+    static Interpreter interpreter;
     vector<Token> tokens = scanner.scanTokens();
     Parser parser(tokens);
-    Expr* expr = parser.parse();
+    // Expr* expr = parser.parse();
+    vector<Stmt*> statements = parser.parse();
 
     if (hadError) return;
-    interpreter.interpret(expr);
+    interpreter.interpret(statements);
     // AstPrinter printer;
     // printer.print(expr);
 }

@@ -43,7 +43,23 @@ Parser::Parser(vector<Token>& tokens){
 }
 
 Expr* Parser::expression(void){
-    return equality();
+    return assignment();
+}
+
+Expr* Parser::assignment(void){
+    Expr* expr = equality();
+    if (match({EQUAL})){
+        Token equals = previous();
+        Expr* value = assignment();
+
+        if (dynamic_cast<Variable*>(expr)){
+            Token name = dynamic_cast<Variable*>(expr)->name;
+            return new Assign(name, value);
+        }
+
+        error(equals, "Invalid assignment target.");
+    }
+    return expr;
 }
 
 Expr* Parser::equality(void){
@@ -134,6 +150,10 @@ Expr* Parser::primary(void){
         return new Literal(previous().literal);
     }
 
+    if (match({IDENTIFIER})){
+        return new Variable(previous());
+    }
+
     if (match({LEFT_PAREN})){
         Expr* expr = expression();
         consume(RIGHT_PAREN, "Expect ) after expression");
@@ -175,10 +195,48 @@ void Parser::synchronize(void){
     }
 }
 
-Expr* Parser::parse(void){
+Stmt* Parser::statement(void){
+    if (match({PRINT})) return printStatement();
+    return expressionStatement();
+}
+
+Stmt* Parser::printStatement(void){
+    Expr* value = expression();
+    consume(SEMICOLON, "Expect ; after value.");
+    return new Print(value);
+}
+
+Stmt* Parser::expressionStatement() {
+    Expr* expr = expression();
+    consume(SEMICOLON, "Expect ';' after expression.");
+    return new Expression(expr);
+}
+
+vector<Stmt*> Parser::parse(void){
+    vector<Stmt*> statements;
+    while(!isAtEnd())
+        statements.push_back(declaration());
+    return statements;
+}
+
+Stmt* Parser::declaration(void){
     try{
-        return expression();
+        if (match({VAR})) return varDeclaration();
+        return statement();
     }catch(ParseError error){
-        return NULL;
+        synchronize();
+        return nullptr;
     }
+}
+
+Stmt* Parser::varDeclaration(void){
+    Token name = consume(IDENTIFIER, "Expect variable name.");
+
+    Expr* initializer = nullptr;
+    if (match({EQUAL})){
+        initializer = expression();
+    }
+
+    consume(SEMICOLON, "Expect ';' after variable declaration.");
+    return new Var(name, initializer);
 }

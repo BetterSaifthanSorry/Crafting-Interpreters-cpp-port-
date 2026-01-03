@@ -1,8 +1,5 @@
 #include "interpreter.h"
 
-#define instanceof(v, t) v.type() == typeid(t)
-#define isNil(v) !v.has_value()
-
 string stringify(any literal){
     if(isNil(literal)) return "nil";
     if (instanceof(literal, double)){
@@ -111,12 +108,45 @@ any Interpreter::visit(Binary& expr){
     }
 }
 
-void Interpreter::interpret(Expr* expr){
+void Interpreter::interpret(vector<Stmt*> statements){
     try{
-    any value = evaluate(expr);
-    cout << stringify(value);
+        for (auto statement : statements)
+            execute(statement);
     } catch(runtimeException exception){
         runtimeError(exception);
     }
 }
 
+any Interpreter::visit(Expression& expr){
+    evaluate(expr.expression);
+    return any();
+}
+
+any Interpreter::visit(Print& expr){
+    any value = evaluate(expr.expression);
+    cout << stringify(value);
+    return any();
+}
+
+void Interpreter::execute(Stmt* stmt){
+    stmt->accept(this);
+}
+
+any Interpreter::visit(Var& stmt){
+    any value = any();
+    if (stmt.expression != nullptr){
+        value = evaluate(stmt.expression);
+    }
+    env.define(stmt.name.lexeme, value);
+    return any();
+}
+
+any Interpreter::visit(Variable& expr){
+    return env.get(expr.name);
+}
+
+any Interpreter::visit(Assign& expr){
+    any value = evaluate(expr.value);
+    env.assign(expr.name, value);
+    return any();
+}
