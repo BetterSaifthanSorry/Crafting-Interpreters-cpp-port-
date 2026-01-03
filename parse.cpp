@@ -128,7 +128,7 @@ Expr* Parser::unary(void){
 Expr* Parser::primary(void){
     if (match({FALSE})) return new Literal(false);
     if (match({TRUE})) return new Literal(true);
-    if (match({NIL})) return new Literal(NULL);
+    if (match({NIL})) return new Literal(any());
 
     if (match({NUMBER, STRING})){
         return new Literal(previous().literal);

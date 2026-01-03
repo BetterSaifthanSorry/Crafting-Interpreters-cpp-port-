@@ -2,10 +2,16 @@
 
 using namespace std;
 bool hadError = false;
+bool hadRuntimeError = false;
 
 void report(int line, string where, string msg){
     cout << "[ line " << line << "] Error" << where << ": " << msg << endl;
     hadError = true;
+}
+
+void runtimeError(runtimeException exception){
+    cout << exception.what() << "\n[ line" << exception.token.line << "]"<<endl;
+    hadRuntimeError = true;
 }
 
 void error(Token token, string message){
@@ -150,7 +156,7 @@ class Scanner{
 
         advance();
 
-        string val = source.substr(start+1, (current-1)-(start+1)-1);
+        string val = source.substr(start+1, (current-1)-(start+1));
         addToken(STRING, val);
     }
 
@@ -177,14 +183,15 @@ class Scanner{
 
 void run(string line){
     Scanner scanner(line);
+    Interpreter interpreter;
     vector<Token> tokens = scanner.scanTokens();
     Parser parser(tokens);
     Expr* expr = parser.parse();
 
     if (hadError) return;
-    
-    AstPrinter printer;
-    printer.print(expr);
+    interpreter.interpret(expr);
+    // AstPrinter printer;
+    // printer.print(expr);
 }
 
 int main(){
