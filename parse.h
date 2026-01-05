@@ -50,4 +50,5 @@ class Parser{
     Stmt* declaration(void);
     Stmt* varDeclaration(void);
     Expr* assignment(void);
+    vector<Stmt*> block(void);
 };

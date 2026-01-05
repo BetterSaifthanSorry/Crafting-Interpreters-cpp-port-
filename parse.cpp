@@ -197,7 +197,17 @@ void Parser::synchronize(void){
 
 Stmt* Parser::statement(void){
     if (match({PRINT})) return printStatement();
+    if (match({LEFT_BRACE})) return new Block(block());
     return expressionStatement();
+}
+
+vector<Stmt*> Parser::block(void){
+    vector<Stmt*> statements;
+    while(!isAtEnd() && !check(RIGHT_BRACE)){
+        statements.push_back(declaration());
+    }
+    consume(RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
 }
 
 Stmt* Parser::printStatement(void){

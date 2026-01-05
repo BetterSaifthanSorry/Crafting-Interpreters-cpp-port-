@@ -16,6 +16,7 @@ class Print;
 class Var;
 class Variable;
 class Assign;
+class Block;
 #define instanceof(v, t) v.type() == typeid(t)
 #define isNil(v) !v.has_value()
 class Visitor{
@@ -33,6 +34,7 @@ class StmtVisitor{
         virtual any visit(Expression& stmt) = 0;
         virtual any visit(Print& stmt) = 0;
         virtual any visit(Var& stmt) = 0;
+        virtual any visit(Block& stmts) = 0;
 };
 
 class Stmt{
@@ -152,4 +154,15 @@ class Assign : public Expr {
     any accept(Visitor* visitor){
         return visitor->visit(*this);
     }
+};
+
+class Block : public Stmt {
+    public:
+        vector<Stmt*> statements;
+        Block(vector<Stmt*> stmts){
+            this->statements=stmts;
+        }  
+        any accept(StmtVisitor* visitor){
+            return visitor->visit(*this);
+        }
 };

@@ -195,7 +195,17 @@ void run(string line){
     // printer.print(expr);
 }
 
-int main(){
+void runFile(char* path){
+    string prog = "";
+    string line = "";
+    ifstream f(path);
+    while (getline(f, line)){
+        prog+=(line = line + "\n");
+    }
+    run(prog);
+}
+
+int main(int argc, char** argv){
 
     hash_map["and"] = AND;
     hash_map["class"] = CLASS;
@@ -253,6 +263,10 @@ int main(){
     print_map[WHILE] = "WHILE";
     print_map[END_OF_FILE] = "END_OF_FILE";
 
+    if (argc > 1)
+        runFile(argv[1]);
+
+    else{
     for(;;){
         cout << "> ";
         string line;
@@ -261,5 +275,6 @@ int main(){
         run(line);
         cout << endl;
         hadError=false;
+    }
     }
 }

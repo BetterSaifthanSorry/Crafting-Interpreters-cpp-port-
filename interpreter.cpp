@@ -137,16 +137,31 @@ any Interpreter::visit(Var& stmt){
     if (stmt.expression != nullptr){
         value = evaluate(stmt.expression);
     }
-    env.define(stmt.name.lexeme, value);
+    env->define(stmt.name.lexeme, value);
     return any();
 }
 
 any Interpreter::visit(Variable& expr){
-    return env.get(expr.name);
+    return env->get(expr.name);
 }
 
 any Interpreter::visit(Assign& expr){
     any value = evaluate(expr.value);
-    env.assign(expr.name, value);
+    env->assign(expr.name, value);
     return any();
+}
+
+any Interpreter::visit(Block& stmts){
+    executeBlock(stmts.statements, new Environment());
+    return any();
+}
+
+void Interpreter::executeBlock(vector<Stmt*> stmts, Environment* environment){
+    auto previous = this->env;
+    environment->enclosing = previous;
+    this->env=environment;
+    for(auto stmt : stmts){
+        execute(stmt);
+    }
+    this->env=previous;
 }

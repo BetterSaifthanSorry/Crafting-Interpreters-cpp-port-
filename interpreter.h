@@ -9,9 +9,9 @@ using namespace std;
 class Visitor;
 class Interpreter:public Visitor, public StmtVisitor{
     public:
-        Environment env;
+        Environment* env;
         Interpreter(void){
-
+            env = new Environment();
         }
         using Visitor::visit;
         any visit(Binary& expr);
@@ -26,5 +26,7 @@ class Interpreter:public Visitor, public StmtVisitor{
         any evaluate(Expr* expr);
         bool isTruthy(any literal);
         void interpret(vector<Stmt*> statements);
+        any visit(Block& stmts);
         void execute(Stmt* stmt);
+        void executeBlock(vector<Stmt*> stmts, Environment* environment);
 };
